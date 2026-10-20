@@ -1,110 +1,179 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+// Progress Page (PRD bagian 8.4)
+import React, { useEffect } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { CalendarDays } from 'lucide-react-native';
+import { useHabits } from '../../hooks/useHabits';
 import { useProgress } from '../../hooks/useProgress';
+import { EmptyState } from '../../screens-ui/EmptyState';
+import { ProgressCard } from '../../screens-ui/ProgressCard';
+import { WeeklyBarChart } from '../../screens-ui/WeeklyBarChart';
+import { colors, fonts, radius, shadow } from '../../screens-ui/theme';
 
 export default function ProgressScreen() {
+  const { loading, error } = useHabits();
   const { total, doneToday, todayPercent, last7Days, weeklyAverage } = useProgress();
 
+  useEffect(() => {
+    if (error) {
+      router.replace('/error');
+    }
+  }, [error]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loading}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={styles.loadingText}>Memuat data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Progress</Text>
-      
-      <View style={styles.todayCard}>
-        <Text style={styles.todayPercent}>{todayPercent}%</Text>
-        <Text style={styles.todayLabel}>Penyelesaian Hari Ini</Text>
-        <Text style={styles.todaySummary}>
-          {doneToday} dari {total} kebiasaan
-        </Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Ringkasan 7 Hari Terakhir</Text>
-      <View style={styles.daysContainer}>
-        {last7Days.map((day) => (
-          <View key={day.date} style={styles.dayItem}>
-            <Text style={styles.dayLabel}>{day.dayLabel}</Text>
-            <Text style={styles.dayPercent}>{day.percent}%</Text>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header: judul + ikon kalender dekoratif */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Progress</Text>
+          <View
+            style={styles.calendarBox}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          >
+            <CalendarDays size={22} color={colors.textSecondary} />
           </View>
-        ))}
-      </View>
+        </View>
 
-      <View style={styles.weeklyStats}>
-        <Text style={statsStyle}>Rata-rata Mingguan: {weeklyAverage}%</Text>
-      </View>
-    </View>
+        {total === 0 ? (
+          <EmptyState
+            title="Belum ada kebiasaan"
+            description="Tambahkan kebiasaan untuk mulai melihat progres dan ringkasan 7 hari kamu."
+            actionLabel="Tambah Kebiasaan"
+            onAction={() => router.push('/add')}
+          />
+        ) : (
+          <>
+            {/* Kartu Penyelesaian Hari Ini */}
+            <ProgressCard
+              percent={todayPercent}
+              done={doneToday}
+              total={total}
+              title="Penyelesaian Hari Ini"
+              size="large"
+            />
+
+            {/* Ringkasan 7 Hari Terakhir */}
+            <Text style={styles.sectionTitle}>Ringkasan 7 Hari Terakhir</Text>
+            <WeeklyBarChart data={last7Days} />
+
+            {/* Statistik */}
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{total}</Text>
+                <Text style={styles.statLabel}>Total Kebiasaan</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{doneToday}</Text>
+                <Text style={styles.statLabel}>Selesai Hari Ini</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{weeklyAverage}%</Text>
+                <Text style={styles.statLabel}>Rata-rata Minggu Ini</Text>
+              </View>
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
     padding: 20,
-    backgroundColor: '#F3F4F6',
+    paddingBottom: 40,
+  },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800' as any,
-    marginBottom: 20,
-    color: '#1F2937',
-    textAlign: 'center',
+    fontFamily: fonts.bold,
+    fontSize: 22,
+    color: colors.text,
   },
-  todayCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 16,
+  calendarBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  todayPercent: {
-    fontSize: 48,
-    fontWeight: '800' as any,
-    color: '#16A34A',
-  },
-  todayLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  todaySummary: {
-    fontSize: 14,
-    color: '#1F2937',
-    marginTop: 8,
+    justifyContent: 'center',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600' as any,
-    color: '#1F2937',
-    marginBottom: 12,
+    fontFamily: fonts.semibold,
+    fontSize: 17,
+    color: colors.text,
+    marginTop: 24,
+    marginBottom: 14,
   },
-  daysContainer: {
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
+    gap: 10,
+    marginTop: 24,
   },
-  dayItem: {
-    width: '20%',
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 16,
+    paddingHorizontal: 6,
+    ...shadow.card,
+  },
+  statValue: {
+    fontFamily: fonts.bold,
+    fontSize: 22,
+    color: colors.primary,
+    marginBottom: 6,
+  },
+  statLabel: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
-  dayLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-  },
-  dayPercent: {
-    fontSize: 24,
-    fontWeight: '700' as any,
-    color: '#16A34A',
-  },
-  weeklyStats: {
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 16,
-    marginTop: 20,
-  },
 });
-
-const statsStyle = {
-  fontSize: 14,
-  color: '#1F2937',
-  textAlign: 'center',
-};

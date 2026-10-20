@@ -1,79 +1,193 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+// Home Page (PRD bagian 8.2)
+import React, { useEffect } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { Bell, Plus } from 'lucide-react-native';
 import { useHabits } from '../../hooks/useHabits';
 import { useProgress } from '../../hooks/useProgress';
+import { EmptyState } from '../../screens-ui/EmptyState';
+import { HabitCard } from '../../screens-ui/HabitCard';
+import { ProgressCard } from '../../screens-ui/ProgressCard';
+import { formatToday, greetingByHour, toLocalDateString } from '../../screens-ui/localDate';
+import { colors, fonts, shadow } from '../../screens-ui/theme';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, loading, error, toggleToday } = useHabits();
   const { todayPercent, doneToday, total } = useProgress();
+  const today = toLocalDateString();
+
+  // Jika pembacaan data gagal, arahkan ke layar Error (PRD bagian 8.6)
+  useEffect(() => {
+    if (error) {
+      router.replace('/error');
+    }
+  }, [error]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loading}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={styles.loadingText}>Memuat data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Hari Ini</Text>
-      <Text style={styles.progress}>Progres: {todayPercent}%</Text>
-      <Text style={styles.summary}>
-        {doneToday} dari {total} kebiasaan selesai
-      </Text>
-      {habits.length === 0 ? (
-        <Text style={styles.empty}>Belum ada kebiasaan</Text>
-      ) : (
-        <View style={styles.list}>
-          {habits.map((habit) => (
-            <View key={habit.id} style={styles.habitItem}>
-              <Text style={styles.habitName}>{habit.name}</Text>
-              <Text style={styles.habitTarget}>{habit.target || ''}</Text>
-            </View>
-          ))}
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header: sapaan, subteks, tanggal, ikon lonceng dekoratif */}
+        <View style={styles.header}>
+          <View style={styles.headerTexts}>
+            <Text style={styles.greeting}>Hai, Arief 👋</Text>
+            <Text style={styles.subGreeting}>{greetingByHour()}</Text>
+            <Text style={styles.date}>{formatToday()}</Text>
+          </View>
+          <View
+            style={styles.bellBox}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          >
+            <Bell size={22} color={colors.textSecondary} />
+          </View>
         </View>
-      )}
-    </View>
+
+        {/* Kartu Progres Hari Ini */}
+        <ProgressCard
+          percent={todayPercent}
+          done={doneToday}
+          total={total}
+          title="Progres Hari Ini"
+        />
+
+        {/* Daftar Kebiasaan */}
+        <Text style={styles.sectionTitle}>Daftar Kebiasaan</Text>
+
+        {habits.length === 0 ? (
+          <EmptyState
+            title="Belum ada kebiasaan"
+            description="Mulai bangun rutinitas positifmu dengan menambahkan kebiasaan pertama."
+            actionLabel="Tambah Kebiasaan"
+            onAction={() => router.push('/add')}
+          />
+        ) : (
+          habits.map((habit) => (
+            <HabitCard
+              key={habit.id}
+              habit={habit}
+              doneToday={habit.completions.includes(today)}
+              onToggle={() => toggleToday(habit.id)}
+              onPress={() =>
+                router.push({ pathname: '/habit/[id]', params: { id: habit.id } })
+              }
+            />
+          ))
+        )}
+      </ScrollView>
+
+      {/* Tombol bulat + membuka Tambah Kebiasaan */}
+      <Pressable
+        style={styles.fab}
+        onPress={() => router.push('/add')}
+        accessibilityRole="button"
+        accessibilityLabel="Tambah kebiasaan"
+        hitSlop={8}
+      >
+        <Plus size={28} color="#FFFFFF" strokeWidth={2.6} />
+      </Pressable>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
     padding: 20,
-    backgroundColor: '#F3F4F6',
+    paddingBottom: 110,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '800' as any,
-    marginBottom: 16,
-    color: '#1F2937',
-  },
-  progress: {
-    fontSize: 18,
-    color: '#15803D',
-    marginBottom: 8,
-  },
-  summary: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 24,
-  },
-  empty: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginVertical: 40,
-  },
-  list: {},
-  habitItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  loading: {
+    flex: 1,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 12,
-    marginBottom: 8,
-    borderRadius: 12,
+    justifyContent: 'center',
+    gap: 10,
   },
-  habitName: {
-    fontSize: 16,
-    color: '#1F2937',
-  },
-  habitTarget: {
+  loadingText: {
+    fontFamily: fonts.regular,
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  headerTexts: {
+    flex: 1,
+    marginRight: 12,
+  },
+  greeting: {
+    fontFamily: fonts.bold,
+    fontSize: 22,
+    color: colors.text,
+  },
+  subGreeting: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  date: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 6,
+  },
+  bellBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionTitle: {
+    fontFamily: fonts.semibold,
+    fontSize: 17,
+    color: colors.text,
+    marginTop: 24,
+    marginBottom: 14,
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.card,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });

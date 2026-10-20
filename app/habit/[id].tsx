@@ -1,105 +1,301 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useHabits, getHabit } from '../../hooks/useHabits';
+// Detail Habit Page — Detail Kebiasaan (PRD bagian 8.5)
+import React, { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Check, ChevronLeft, Trash } from 'lucide-react-native';
+import { useHabits } from '../../hooks/useHabits';
+import { PrimaryButton } from '../../components/PrimaryButton';
+import { CategoryChip } from '../../screens-ui/CategoryChip';
+import { ConfirmDeleteDialog } from '../../screens-ui/ConfirmDeleteDialog';
+import { EmptyState } from '../../screens-ui/EmptyState';
+import { HabitIcon } from '../../screens-ui/habitIcon';
+import {
+  formatFullDate,
+  formatToday,
+  toLocalDateString,
+} from '../../screens-ui/localDate';
+import { colors, fonts, radius, shadow, HIT_SIZE } from '../../screens-ui/theme';
 
-export default function DetailHabitScreen({ params }: { params: { id: string } }) {
-  const habit = getHabit(params.id);
-  const { toggleToday } = useHabits();
+export default function DetailHabitScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { getHabit, toggleToday, deleteHabit } = useHabits();
+  const [confirmVisible, setConfirmVisible] = useState(false);
+
+  const habit = getHabit(id ?? '');
+
+  const goHome = () => router.replace('/(tabs)');
 
   if (!habit) {
-    return null;
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={goHome}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            hitSlop={8}
+          >
+            <ChevronLeft size={24} color={colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Detail Kebiasaan</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <EmptyState
+          title="Kebiasaan tidak ditemukan"
+          description="Kebiasaan yang kamu cari sudah dihapus atau tidak tersedia."
+          actionLabel="Kembali ke Home"
+          onAction={goHome}
+        />
+      </SafeAreaView>
+    );
   }
 
+  const today = toLocalDateString();
+  const doneToday = habit.completions.includes(today);
+  const history = [...habit.completions].sort((a, b) => (a < b ? 1 : -1));
+
+  const handleConfirmDelete = async () => {
+    setConfirmVisible(false);
+    await deleteHabit(habit.id);
+    goHome();
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{habit.name}</Text>
-      
-      <View style={styles.habitDetails}>
-        <Text style={styles.iconWrapper}>
-          {/* HabitIcon placeholder - would use lucide-react-native */}
-          {habit.icon}
-        </Text>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Target</Text>
-          <Text style={styles.detailValue}>{habit.target || '—'}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Kategori</Text>
-          <Text style={styles.detailValue}>{habit.category}</Text>
-        </View>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      {/* Header: tombol kembali + judul */}
+      <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => (router.canGoBack() ? router.back() : goHome())}
+          accessibilityRole="button"
+          accessibilityLabel="Kembali"
+          hitSlop={8}
+        >
+          <ChevronLeft size={24} color={colors.text} />
+        </Pressable>
+        <Text style={styles.headerTitle}>Detail Kebiasaan</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.actionArea}>
-        <Pressable style={styles.toggleButton} onPress={() => toggleToday(habit.id)}>
-          <Text style={styles.toggleLabel}>
-            {habit.completions.some(c => new Date(c).toISOString().split('T')[0] === new Date().toISOString().split('T')[0]) ? 'Sudah selesai' : 'Selesai hari ini'}
-          </Text>
-        </Pressable>
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Ikon, nama, target, chip kategori */}
+        <View style={styles.card}>
+          <View style={styles.iconBox}>
+            <HabitIcon name={habit.icon} size={30} color={colors.primary} />
+          </View>
+          <Text style={styles.habitName}>{habit.name}</Text>
+          {habit.target ? (
+            <Text style={styles.target}>Target: {habit.target}</Text>
+          ) : null}
+          <View style={styles.chipRow}>
+            <CategoryChip category={habit.category} />
+          </View>
+        </View>
 
-      <View style={styles.actionArea} style={{ marginTop: 16 }}>
-        <Pressable style={{ ...styles.toggleButton, backgroundColor: '#EF4444' }} onPress={() => {}}>
-          <Text style={{ ...styles.toggleLabel, color: '#FFFFFF' }}>Hapus kebiasaan</Text>
+        {/* Status selesai hari ini */}
+        <View style={styles.card}>
+          <Text style={styles.todayDate}>Tanggal hari ini: {formatToday()}</Text>
+
+          {doneToday ? (
+            <View style={styles.doneStatus} accessibilityRole="alert">
+              <Check size={16} color={colors.success} strokeWidth={3} />
+              <Text style={styles.doneStatusText}>Sudah selesai hari ini</Text>
+            </View>
+          ) : null}
+
+          <View style={styles.toggleWrap}>
+            <PrimaryButton
+              label={doneToday ? 'Batalkan Penyelesaian' : 'Selesai hari ini'}
+              onPress={() => toggleToday(habit.id)}
+            />
+          </View>
+        </View>
+
+        {/* Riwayat */}
+        <Text style={styles.sectionTitle}>Riwayat</Text>
+        <View style={styles.card}>
+          {history.length === 0 ? (
+            <Text style={styles.emptyHistory}>Belum ada riwayat.</Text>
+          ) : (
+            history.map((date) => (
+              <View key={date} style={styles.historyRow}>
+                <View style={styles.historyCheck}>
+                  <Check size={14} color={colors.success} strokeWidth={3} />
+                </View>
+                <Text style={styles.historyText}>{formatFullDate(date)}</Text>
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* Hapus kebiasaan (latar merah muda lembut) */}
+        <Pressable
+          style={({ pressed }) => [styles.deleteButton, pressed && styles.deletePressed]}
+          onPress={() => setConfirmVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel={`Hapus kebiasaan ${habit.name}`}
+        >
+          <Trash size={18} color={colors.error} />
+          <Text style={styles.deleteText}>Hapus Kebiasaan</Text>
         </Pressable>
-      </View>
-    </View>
+      </ScrollView>
+
+      <ConfirmDeleteDialog
+        visible={confirmVisible}
+        habitName={habit.name}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmVisible(false)}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '800' as any,
-    marginBottom: 24,
-    color: '#1F2937',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: colors.background,
+  },
+  backButton: {
+    width: HIT_SIZE,
+    height: HIT_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    flex: 1,
+    fontFamily: fonts.semibold,
+    fontSize: 17,
+    color: colors.text,
     textAlign: 'center',
   },
-  habitDetails: {
-    marginBottom: 24,
+  headerSpacer: {
+    width: HIT_SIZE,
   },
-  iconWrapper: {
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+    marginBottom: 16,
+    ...shadow.card,
+  },
+  iconBox: {
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.softGreen,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  detailRow: {
+  habitName: {
+    fontFamily: fonts.semibold,
+    fontSize: 20,
+    color: colors.text,
+  },
+  target: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  chipRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    marginTop: 12,
   },
-  detailLabel: {
-    fontSize: 14,
-    color: '#6B7280',
+  todayDate: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 12,
   },
-  detailValue: {
-    fontSize: 14,
-    color: '#1F2937',
-  },
-  actionArea: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 16,
-    marginTop: 20,
-  },
-  toggleButton: {
-    backgroundColor: '#16A34A',
-    padding: 12,
-    borderRadius: 12,
+  doneStatus: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    gap: 8,
+    backgroundColor: colors.softGreen,
+    borderRadius: radius.button,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
   },
-  toggleLabel: {
-    color: '#FFFFFF',
+  doneStatusText: {
+    fontFamily: fonts.medium,
+    fontSize: 13,
+    color: colors.success,
+  },
+  toggleWrap: {
+    marginTop: 4,
+  },
+  sectionTitle: {
+    fontFamily: fonts.semibold,
+    fontSize: 17,
+    color: colors.text,
+    marginBottom: 12,
+  },
+  emptyHistory: {
+    fontFamily: fonts.regular,
     fontSize: 14,
-    fontWeight: '600' as any,
+    color: colors.textSecondary,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  historyCheck: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.softGreen,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  historyText: {
+    flex: 1,
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.text,
+  },
+  deleteButton: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: radius.button,
+    backgroundColor: colors.errorSoft,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    paddingVertical: 12,
+    marginTop: 8,
+  },
+  deletePressed: {
+    opacity: 0.85,
+  },
+  deleteText: {
+    fontFamily: fonts.semibold,
+    fontSize: 15,
+    color: colors.error,
   },
 });

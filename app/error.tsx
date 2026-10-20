@@ -1,45 +1,76 @@
-import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+// Error / Retry State (PRD bagian 8.6)
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useHabits } from '../hooks/useHabits';
+import { ErrorState } from '../screens-ui/ErrorState';
+import { colors, fonts } from '../screens-ui/theme';
 
-export default function ErrorScreen({ navigation }: { navigation: any }) {
-  const [error, setError] = React.useState<string | null>(null);
-  const [retryCount, setRetryCount] = React.useState(0);
+export default function ErrorScreen() {
+  const { loading, error, retry } = useHabits();
+  const [retrying, setRetrying] = useState(false);
+  const triedRef = useRef(false);
+
+  // Setelah retry berhasil (error hilang), kembali ke Home
+  useEffect(() => {
+    if (triedRef.current && !loading && !error) {
+      router.replace('/(tabs)');
+    }
+  }, [loading, error]);
 
   const handleRetry = async () => {
-    setRetryCount((prev) => prev + 1);
-    // Trigger retry logic - in production would re-fetch data
+    if (retrying) return;
+    setRetrying(true);
+    triedRef.current = true;
+    try {
+      // Mengulang proses baca data; tidak menghapus/menimpa data lokal
+      await retry();
+    } finally {
+      setRetrying(false);
+    }
   };
 
+  const handleBack = () => router.replace('/(tabs)');
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loading}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={styles.loadingText}>Memuat data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Gagal memuat data</Text>
-      <Text style={styles.message}>
-        Terjadi kesalahan saat membaca data lokal. Silakan coba lagi.
-      </Text>
-      <Button title="Coba Lagi" onPress={handleRetry} />
-      <Button title="Kembali ke Home" onPress={() => navigation.navigate('Home')} alternate />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <ErrorState onRetry={handleRetry} onBack={handleBack} />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
+  },
+  loading: {
+    flex: 1,
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    gap: 10,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700' as any,
-    color: '#EF4444',
-    marginBottom: 16,
-  },
-  message: {
+  loadingText: {
+    fontFamily: fonts.regular,
     fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 24,
-    textAlign: 'center',
+    color: colors.textSecondary,
   },
 });
