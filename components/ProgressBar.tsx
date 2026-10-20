@@ -10,7 +10,7 @@ export const ProgressBar = ({ percent }: ProgressBarProps) => {
     <View style={styles.container}>
       <Text style={styles.percentText}>{percent}%</Text>
       <View style={styles.barBackground}>
-        <View style={styles.barFill} style={{ width: `${percent}%` }} />
+        <View style={[styles.barFill, { width: `${percent}%` }]} />
       </View>
     </View>
   );

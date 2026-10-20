@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 
 interface CircularProgressProps {
   percent: number;
@@ -10,21 +11,31 @@ export const CircularProgress = ({ percent, size = 128 }: CircularProgressProps)
   const strokeWidth = 16;
   const radius = (size - strokeWidth) / 2;
 
-  // Calculate the dash offset based on progress
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[
-          styles.circle,
-          {
-            strokeDasharray: circumference,
-            strokeDashoffset: offset,
-          },
-        ]}
-      />
+    <View style={[styles.container, { width: size, height: size }]}>
+      <Svg width={size} height={size} style={styles.svg}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#E5E7EB"
+          strokeWidth={strokeWidth}
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#16A34A"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </Svg>
       <Text style={styles.percentText}>{percent}%</Text>
     </View>
   );
@@ -32,23 +43,13 @@ export const CircularProgress = ({ percent, size = 128 }: CircularProgressProps)
 
 const styles = StyleSheet.create({
   container: {
-    width: 0,
-    height: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  circle: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    borderWidth: 16,
-    borderColor: '#E5E7EB',
-    position: 'relative',
-    backgroundColor: 'transparent',
+  svg: {
+    position: 'absolute',
   },
   percentText: {
-    position: 'absolute',
-    top: 50,
-    left: 50,
-    transform: [{ translateX: -20 }, { translateY: -12 }],
     fontSize: 18,
     fontWeight: '600' as any,
     color: '#1F2937',

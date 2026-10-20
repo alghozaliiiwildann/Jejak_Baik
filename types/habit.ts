@@ -6,14 +6,14 @@ type Habit = {
   target?: string;
   category: HabitCategory;
   icon: string;
-  createdAt: string; // ISO date
-  completions: string[]; // daftar tanggal lokal YYYY-MM-DD
+  createdAt: string; // YYYY-MM-DD lokal
+  completions: string[]; // daftar tanggal lokal YYYY-MM-DD, tanpa duplikat
 };
 
 type DayProgress = {
-  date: string;
-  dayLabel: string;
-  percent: number;
+  date: string; // YYYY-MM-DD lokal
+  dayLabel: string; // Sen, Sel, ...
+  percent: number; // 0-100
 };
 
-export { HabitCategory, Habit, DayProgress };
+export type { HabitCategory, Habit, DayProgress };

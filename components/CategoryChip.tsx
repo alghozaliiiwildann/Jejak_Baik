@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Text, StyleSheet, Pressable } from 'react-native';
 
 interface CategoryChipProps {
   category: string;
@@ -9,8 +9,8 @@ interface CategoryChipProps {
 
 export const CategoryChip = ({ category, selected, onPress }: CategoryChipProps) => {
   return (
-    <Pressable style={styles.chip} onPress={onPress}>
-      <Text style={styles.chipText}>
+    <Pressable style={[styles.chip, selected && styles.selectedChip]} onPress={onPress}>
+      <Text style={[styles.chipText, selected && styles.selectedChipText]}>
         {category}
       </Text>
     </Pressable>
@@ -22,15 +22,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: selected ? '#16A34A' : '#FFFFFF',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: selected ? '#16A34A' : '#E5E7EB',
+    borderColor: '#E5E7EB',
     marginRight: 8,
     marginBottom: 8,
   },
+  selectedChip: {
+    backgroundColor: '#16A34A',
+    borderColor: '#16A34A',
+  },
   chipText: {
-    color: selected ? '#FFFFFF' : '#1F2937',
+    color: '#1F2937',
     fontSize: 12,
     fontWeight: '600' as any,
+  },
+  selectedChipText: {
+    color: '#FFFFFF',
   },
 });
