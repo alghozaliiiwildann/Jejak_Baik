@@ -35,14 +35,21 @@ Run lint and typecheck before declaring any task done.
 - Jangan buat hook baru di luar kontrak yang sudah ditetapkan.
 
 ### Kontrak Komponen
-- Gunakan hanya komponen yang terdaftar dalam kontrak: `PrimaryButton`, `SecondaryButton`, `CategoryChip`, `ProgressBar`, `CircularProgress`, `HabitCard`, `ProgressCard`, `HabitIconPicker`, `EmptyState`, `ErrorState`, `ConfirmDeleteDialog`, `WeeklyBarChart`.
-- Jangan gunakan komponen dari folder lain tanpa kontrak.
+- **SEMUA** komponen di bawah ini wajib diimpor dari `components/` (Dev B):
+  `PrimaryButton`, `SecondaryButton`, `CategoryChip`, `ProgressBar`, `CircularProgress`, `HabitCard`, `ProgressCard`, `HabitIconPicker`, `EmptyState`, `ErrorState`, `ConfirmDeleteDialog`, `WeeklyBarChart`
+- `components/` adalah **satu-satunya sumber** komponen reusable; `screens-ui/` hanyalah kandidasi sementara dari Dev C yang **dilarang menambah file baru** dan akan **dihapus** setelah konsolidasi.
 - Setiap elemen hanya boleh memiliki **satu atribut** `style`.
 
 ### Pembagian Folder per Peran
+
 - **A** = Setup & Data: `app/_layout`, `services`, `hooks`, `context`, `utils`, `types`
-- **B** = Design System & Komponen: `theme`, `components`, `assets`
-- **C** = Layar & Integrasi: `app/index`, `app/(tabs)`, `app/add`, `app/habit`, `app/error`
+
+- **B** = Design System & Komponen: `theme` (token desain), `components` (SEMUA komponen reusable dari kontrak, lihat daftar di atas — Dev B)
+
+- **C** = Layar & Integrasi: `app/index`, `app/(tabs)`, `app/add`, `app/habit`, `app/error` (layar lengkap, Dev C)
+  - `screens-ui/` hanyalah **kandidasi sementara** dari Dev C berisi komponen duplikat dan akan **dihapus** setelah konsolidasi ke `components/`
+  - **DILARANG menambah file baru di `screens-ui/`**
+  - Setiap file layar di `app/` harus mengimpor komponen dari `components/` saja, bukan dari `screens-ui/`
 
 ### Aturan tsc
 - `tsc --noEmit` harus lolos tanpa error (0 error).

@@ -39,9 +39,11 @@ Setiap file hanya boleh memiliki **satu pemilik** (role). Jika file terdaftar di
 
 **A** = Setup & Data: `app/_layout`, `services`, `hooks`, `context`, `utils`, `types`
 
-**B** = Design System & Komponen: `theme`, `components`, `assets`
+**B** = Design System & Komponen: `theme` (token desain), `components` (SEMUA komponen reusable dari kontrak: PrimaryButton, SecondaryButton, CategoryChip, ProgressBar, CircularProgress, HabitCard, ProgressCard, HabitIconPicker, EmptyState, ErrorState, ConfirmDeleteDialog, WeeklyBarChart — semuanya dari Dev B)
 
-**C** = Layar & Integrasi: `app/index`, `app/(tabs)`, `app/add`, `app/habit`, `app/error`
+**C** = Layar & Integrasi: `app/index`, `app/(tabs)`, `app/add`, `app/habit`, `app/error` (layar lengkap, Dev C)
+  - `screens-ui/` hanyalah **kandidasi sementara** berisi komponen duplikat dari Dev C yang **dilarang menambah file baru** dan akan **dihapus** setelah konsolidasi ke `components/`
+  - Setiap file layar di `app/` harus mengimpor komponen dari `components/` saja
 
 ```
 A = Setup & Data
@@ -62,13 +64,11 @@ B = Design System & Komponen
   - components/CircularProgress.tsx
   - components/HabitCard.tsx
   - components/ProgressCard.tsx
-  - components/ConfirmDeleteDialog.tsx
+  - components/HabitIconPicker.tsx
   - components/EmptyState.tsx
   - components/ErrorState.tsx
-  - components/HabitIconPicker.tsx
+  - components/ConfirmDeleteDialog.tsx
   - components/WeeklyBarChart.tsx
-  - theme/
-  - assets/
 
 C = Layar & Integrasi
   - app/index.tsx (Splash)

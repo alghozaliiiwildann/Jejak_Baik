@@ -13,6 +13,7 @@ import React, {
 } from "react";
 
 import { loadHabits, saveHabits } from "../services/storageService";
+import { createId } from "../utils/id";
 import type { Habit, HabitCategory } from "../types/habit";
 import { getTodayLocal } from "../utils/date";
 
@@ -45,14 +46,6 @@ function toErrorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
     : "Terjadi kesalahan pada data JejakBaik.";
-}
-
-function createUniqueId(existing: Habit[]): string {
-  let id = "";
-  do {
-    id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-  } while (existing.some((habit) => habit.id === id));
-  return id;
 }
 
 export function HabitsProvider({ children }: { children: React.ReactNode }) {
@@ -112,7 +105,7 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
       }
       const current = habitsRef.current;
       const habit: Habit = {
-        id: createUniqueId(current),
+        id: createId(),
         name,
         ...(input.target?.trim() ? { target: input.target.trim() } : {}),
         category: input.category,
