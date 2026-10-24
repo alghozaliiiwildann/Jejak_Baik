@@ -1,18 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { colors, radius } from '../theme';
 
 interface ProgressBarProps {
   percent: number;
 }
 
 export const ProgressBar = ({ percent }: ProgressBarProps) => {
+  const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.percentText}>{percent}%</Text>
-      <View style={styles.barBackground}>
-        <View style={[styles.barFill, { width: `${percent}%` }]} />
-      </View>
-    </View>
+    <View style={styles.container} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: clamped }} />
   );
 };
 
@@ -21,20 +19,21 @@ const styles = StyleSheet.create({
     height: 20,
     alignItems: 'center',
     marginVertical: 8,
+    minHeight: 44,
   },
   percentText: {
     fontSize: 12,
-    color: '#1F2937',
-    marginBottom: 4,
+    color: colors.text,
   },
   barBackground: {
     height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden' as const,
+    backgroundColor: colors.border,
+    borderRadius: radius.chip,
+    overflow: 'hidden',
+    minHeight: 44,
   },
   barFill: {
     height: '100%',
-    backgroundColor: '#16A34A',
+    backgroundColor: colors.primary,
   },
-});
+});
