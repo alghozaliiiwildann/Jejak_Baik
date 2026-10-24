@@ -35,34 +35,49 @@ npx expo start
 
 ## 📁 Struktur Folder per Peran
 
+Setiap file hanya boleh memiliki **satu pemilik** (role). Jika file terdaftar di beberapa role, perbaharui sesuai aturan berikut:
+
+**A** = Setup & Data: `app/_layout`, `services`, `hooks`, `context`, `utils`, `types`
+
+**B** = Design System & Komponen: `theme`, `components`, `assets`
+
+**C** = Layar & Integrasi: `app/index`, `app/(tabs)`, `app/add`, `app/habit`, `app/error`
+
 ```
 A = Setup & Data
-  - app/_layout.tsx, app/index.tsx (splash)
-  - app/(tabs)/_layout.tsx, app/(tabs)/index.tsx (Home)
-  - app/(tabs)/progress.tsx
-  - app/add.tsx, app/habit/[id].tsx, app/error.tsx
+  - app/_layout.tsx
+  - services/storageService.ts
+  - hooks/useHabits.ts
+  - hooks/useProgress.ts
+  - context/HabitsContext.tsx
+  - utils/date.ts
+  - utils/progress.ts
   - types/habit.ts
-  - hooks/useHabits.ts, hooks/useProgress.ts
-  - services/ (AsyncStorage wrapper)
-  - context/ (jika dibutuhkan)
-  - utils/date.ts (format tanggal)
-  - utils/ (utility functions)
 
 B = Design System & Komponen
-  - components/PrimaryButton, SecondaryButton
-  - components/HabitCard, ProgressBar, CircularProgress
-  - components/CategoryChip, EmptyState, ErrorState
-  - components/HabitIconPicker, ProgressCard, WeeklyBarChart
-  - components/ConfirmDeleteDialog
-  - theme/ (warna, typografi, radius)
-  - assets/ (ikon, logo)
+  - components/PrimaryButton.tsx
+  - components/SecondaryButton.tsx
+  - components/CategoryChip.tsx
+  - components/ProgressBar.tsx
+  - components/CircularProgress.tsx
+  - components/HabitCard.tsx
+  - components/ProgressCard.tsx
+  - components/ConfirmDeleteDialog.tsx
+  - components/EmptyState.tsx
+  - components/ErrorState.tsx
+  - components/HabitIconPicker.tsx
+  - components/WeeklyBarChart.tsx
+  - theme/
+  - assets/
 
 C = Layar & Integrasi
-  - app/(tabs)/index.tsx (Home screen)
-  - app/(tabs)/progress.tsx (Progress screen)
-  - app/add.tsx (Add Habit screen)
-  - app/habit/[id].tsx (Detail Habit screen)
-  - app/error.tsx (Error Retry screen)
+  - app/index.tsx (Splash)
+  - app/(tabs)/_layout.tsx
+  - app/(tabs)/index.tsx (Home)
+  - app/(tabs)/progress.tsx
+  - app/add.tsx
+  - app/habit/[id].tsx
+  - app/error.tsx
 ```
 
 ## 🎨 Token Desain

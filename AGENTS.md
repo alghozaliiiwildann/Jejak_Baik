@@ -23,9 +23,37 @@ npx expo install --fix      # fix incompatible package versions
 
 Run lint and typecheck before declaring any task done.
 
+## Project Rules
+
+### Kontrak Tipe
+- Gunakan hanya tipe dari `types/habit.ts` (HabitCategory, Habit, DayProgress).
+- Jangan gunakan `any` atau `@ts-ignore` dalam kode.
+- Semua tipe harus valid TypeScript tanpa suppress.
+
+### Kontrak Hook
+- Gunakan hanya hook yang didefinisikan dalam kontrak: `useHabits()`, `useProgress()`.
+- Jangan buat hook baru di luar kontrak yang sudah ditetapkan.
+
+### Kontrak Komponen
+- Gunakan hanya komponen yang terdaftar dalam kontrak: `PrimaryButton`, `SecondaryButton`, `CategoryChip`, `ProgressBar`, `CircularProgress`, `HabitCard`, `ProgressCard`, `HabitIconPicker`, `EmptyState`, `ErrorState`, `ConfirmDeleteDialog`, `WeeklyBarChart`.
+- Jangan gunakan komponen dari folder lain tanpa kontrak.
+- Setiap elemen hanya boleh memiliki **satu atribut** `style`.
+
+### Pembagian Folder per Peran
+- **A** = Setup & Data: `app/_layout`, `services`, `hooks`, `context`, `utils`, `types`
+- **B** = Design System & Komponen: `theme`, `components`, `assets`
+- **C** = Layar & Integrasi: `app/index`, `app/(tabs)`, `app/add`, `app/habit`, `app/error`
+
+### Aturan tsc
+- `tsc --noEmit` harus lolos tanpa error (0 error).
+- Larangan utuh terhadap `any` dan `@ts-ignore`.
+- Hanya izinkan tipe yang eksplisit dari kontrak.
+
+Kemudian lanjut ke...
+
 ## Navigation & Routing
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
+- Use **Expo Router** for all navigation. Routes live in `app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `app/`.
 - Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
 - Docs: https://docs.expo.dev/router/introduction.md
 
