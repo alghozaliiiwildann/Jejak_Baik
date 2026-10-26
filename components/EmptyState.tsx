@@ -18,7 +18,7 @@ export const EmptyState = ({
   onAction,
 }: EmptyStateProps) => {
   return (
-    <View style={styles.container} accessibilityRole="empty">
+    <View style={styles.container} accessibilityRole="none">
       <View style={styles.iconBox}>
         <Sprout size={40} color={colors.primary} strokeWidth={1.8} />
       </View>

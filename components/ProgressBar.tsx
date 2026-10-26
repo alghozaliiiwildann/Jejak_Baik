@@ -19,8 +19,7 @@ const styles = StyleSheet.create({
     height: 20,
     alignItems: 'center',
     marginVertical: 8,
-    minHeight: 44,
-  },
+    },
   percentText: {
     fontSize: 12,
     color: colors.text,
@@ -30,7 +29,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     borderRadius: radius.chip,
     overflow: 'hidden',
-    minHeight: 44,
   },
   barFill: {
     height: '100%',
